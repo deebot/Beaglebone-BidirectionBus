@@ -7,7 +7,7 @@
 <setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -337,32 +337,34 @@
 </packages>
 <symbols>
 <symbol name="CD54HC299">
-<wire x1="0" y1="0" x2="0" y2="21.5" width="0.15" layer="94"/>
-<wire x1="0" y1="21.5" x2="14" y2="21.5" width="0.15" layer="94"/>
-<wire x1="14" y1="21.5" x2="14" y2="0" width="0.15" layer="94"/>
-<wire x1="14" y1="0" x2="0" y2="0" width="0.15" layer="94"/>
-<pin name="S0" x="-2.5" y="19.5" length="short"/>
-<pin name="OE1" x="-2.5" y="17.5" length="short"/>
-<pin name="OE2" x="-2.5" y="15.5" length="short"/>
-<pin name="I/O6" x="-2.5" y="13.5" length="short"/>
-<pin name="I/O4" x="-2.5" y="11.5" length="short"/>
-<pin name="I/O2" x="-2.5" y="9.5" length="short"/>
-<pin name="I/O0" x="-2.5" y="7.5" length="short"/>
-<pin name="Q0" x="-2.5" y="5.5" length="short"/>
-<pin name="MR" x="-2.5" y="3.5" length="short"/>
-<pin name="GND" x="-2.5" y="1.5" length="short"/>
-<pin name="VCC" x="16.5" y="19.5" length="short" rot="R180"/>
-<pin name="S1" x="16.5" y="17.5" length="short" rot="R180"/>
-<pin name="DS7" x="16.5" y="15.5" length="short" rot="R180"/>
-<pin name="Q7" x="16.5" y="13.5" length="short" rot="R180"/>
-<pin name="I/O7" x="16.5" y="11.5" length="short" rot="R180"/>
-<pin name="I/O5" x="16.5" y="9.5" length="short" rot="R180"/>
-<pin name="I/O3" x="16.5" y="7.5" length="short" rot="R180"/>
-<pin name="I/O1" x="16.5" y="5.5" length="short" rot="R180"/>
-<pin name="CP" x="16.5" y="3.5" length="short" rot="R180"/>
-<pin name="DS0" x="16.5" y="1.5" length="short" rot="R180"/>
-<text x="0" y="-2.54" size="1.4224" layer="95">&gt;VALUE</text>
-<text x="0" y="22.86" size="1.4224" layer="95">&gt;NAME</text>
+<wire x1="-10.16" y1="-17.78" x2="-10.16" y2="2.54" width="0.15" layer="94"/>
+<pin name="S0" x="-12.7" y="7.62" length="short"/>
+<pin name="OE1" x="-12.7" y="5.08" length="short"/>
+<pin name="OE2" x="-12.7" y="2.54" length="short"/>
+<pin name="I/O6" x="-12.7" y="0" length="short"/>
+<pin name="I/O4" x="-12.7" y="-2.54" length="short"/>
+<pin name="I/O2" x="-12.7" y="-5.08" length="short"/>
+<pin name="I/O0" x="-12.7" y="-7.62" length="short"/>
+<pin name="Q0" x="-12.7" y="-10.16" length="short"/>
+<pin name="MR" x="-12.7" y="-12.7" length="short"/>
+<pin name="GND" x="-12.7" y="-15.24" length="short"/>
+<pin name="VCC" x="12.7" y="7.62" length="short" rot="R180"/>
+<pin name="S1" x="12.7" y="5.08" length="short" rot="R180"/>
+<pin name="DS7" x="12.7" y="2.54" length="short" rot="R180"/>
+<pin name="Q7" x="12.7" y="0" length="short" rot="R180"/>
+<pin name="I/O7" x="12.7" y="-2.54" length="short" rot="R180"/>
+<pin name="I/O5" x="12.7" y="-5.08" length="short" rot="R180"/>
+<pin name="I/O3" x="12.7" y="-7.62" length="short" rot="R180"/>
+<pin name="I/O1" x="12.7" y="-10.16" length="short" rot="R180"/>
+<pin name="CP" x="12.7" y="-12.7" length="short" rot="R180"/>
+<pin name="DS0" x="12.7" y="-15.24" length="short" rot="R180"/>
+<text x="-10.16" y="-20.32" size="1.4224" layer="95">&gt;VALUE</text>
+<text x="-10.16" y="12.7" size="1.4224" layer="95">&gt;NAME</text>
+<wire x1="-10.16" y1="2.54" x2="-10.16" y2="3.72" width="0.15" layer="94"/>
+<wire x1="-10.16" y1="2.54" x2="-10.16" y2="10.16" width="0.1524" layer="94"/>
+<wire x1="-10.16" y1="10.16" x2="10.16" y2="10.16" width="0.1524" layer="94"/>
+<wire x1="10.16" y1="10.16" x2="10.16" y2="-17.78" width="0.1524" layer="94"/>
+<wire x1="10.16" y1="-17.78" x2="-10.16" y2="-17.78" width="0.1524" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
