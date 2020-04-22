@@ -1,4 +1,4 @@
-Instructions to use systemd service to configure PRU pins (for related files refer folder: Systemd_pinconfig)
+Instructions to use systemd service to configure PRU pins (for related files refer folder: Systemd_pinconfig). Configuring this way donot require a system reload. Only systemctl daemon reload may be required
 
 1. cp pruconfig.sh /usr/bin
 2. sudo chmod ugo+x config-pru-pins.sh
