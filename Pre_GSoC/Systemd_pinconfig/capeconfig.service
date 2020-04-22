@@ -5,6 +5,6 @@ After=generic-board-startup.service
 Type=simple
 User=root
 WorkingDirectory=/usr/bin
-ExecStart=/usr/bin/config-pru-pins.sh
+ExecStart=/usr/bin/PRUconfig.sh
 [Install]
 WantedBy=multi-user.target
