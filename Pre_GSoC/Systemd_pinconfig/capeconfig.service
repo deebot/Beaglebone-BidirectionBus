@@ -1,0 +1,10 @@
+[Unit]
+Description=Enable the PRU pins on boot
+After=generic-board-startup.service
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/bin
+ExecStart=/usr/bin/config-pru-pins.sh
+[Install]
+WantedBy=multi-user.target
