@@ -1,9 +1,7 @@
 # Beaglebone-BidirectionBus
-This repo contains the  PCB files , device drivers and other firmware to implement  a bidirectional Bus with a Beaglebone.
+A bidirectionalBus allows the Beaglebone  to  take inputs and control multiple outputs from the PRU. 
 
 
-
-Intuitive language for PRU which compiles down to PRU Assembly.
 Details
 
 GSoC 2020 project under BeagleBoard.org
