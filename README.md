@@ -20,6 +20,8 @@ GSoC 2020 project under BeagleBoard.org
  - 74HC595_prugcc  : It contains firemwre code to implement a unidirectional bus using 74HC595 and schematic diagram.
  - 74HC595_PRUGCC_RPMSG: It contains code to implement unidirectional bus, schematic, driver, userspace code and pru firmware
  - References :  Folder contains  Data sheets and important links related to topic found on internet
- - PreGSoC folder contains custom designed Eagle libraries for components needed on the Cape
+ - PreGSoC folder:  contains custom designed Eagle libraries for components needed on the Cape
+ - Memdriver: The folder contains a basic LKM to read and write to OCMC Memory.
+ - PRUoutputCLPRU: Folder contains a basic pin toggle example with my custom fuctions
 
 
