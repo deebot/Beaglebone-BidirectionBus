@@ -2,7 +2,7 @@
 This code  takes the user input from a userspace code and sends it to the PRU
 using RPMSG and then the PRU pushes the data inside the shift register. 
 
-## Wiring the Button and LED
+## Wiring the 74HC595 shift register
 
 ![Diagram](image/WiringDiagram.png)
 ## Firmware
@@ -36,3 +36,8 @@ change the pin numbers as per your usage
 	cd /sys/class/remoteproc/remoteproc2
 	echo start > state
 
+## Build and Send Data from userspace:
+	cd userspace_code
+	gcc UserSpace_Data.c -o UserSpace_Data.out
+
+In order to change the value change the string  from "123" to desired decimal no between 0-255
