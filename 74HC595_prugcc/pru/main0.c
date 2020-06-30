@@ -35,7 +35,7 @@
 #define LATCH  3    //2.30
 #define CLEARR  6   //2.28  pin
 //uint32_t readVal;
-volatile uint8_t dataInput= 0b10100000;  // 0x55
+volatile uint8_t dataInput= 0b10101010;  // 0x55
 volatile uint8_t bitVal;
 
 
