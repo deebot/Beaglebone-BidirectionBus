@@ -15,8 +15,8 @@ To build the PRU firmware:
 
 Build and install firmware:
 
-	sudo cp out/pru-core0.elf /lib/firmware/am335x-pru1-fw
-	sudo cp out/pru-core1.elf /lib/firmware/am335x-pru0-fw
+	sudo cp out/74hc595romsg.elf /lib/firmware/am335x-pru1-fw
+	sudo cp out/pru-halt.elf /lib/firmware/am335x-pru0-fw
 	sync
 
 In order to see the blinking led when you press the button you'll need to configure the pin mux:
