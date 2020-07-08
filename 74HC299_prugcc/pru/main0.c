@@ -110,6 +110,41 @@ static void push_Out()
 	write_r30(~(1<<S1)&read_r30());
 }
 
+/*CONFIGURE TO SCAN INPUTS
+ * set OE1 LOW
+ * set OE2 LOW
+ * set S0 HIGH
+ * set S1 HIGH
+ */
+static void config_PISOMode()
+{
+	write_r30(~(1<<OE1)&read_r30());  // set OE1 to low
+	write_r30(~(1<<OE2)&read_r30());// set OE2 to low
+	write_r30(read_r30()|(1<<S0)); // set S0 to HIGH
+	write_r30(read_r30()|(1<<S1)); //set S1 TO HIGH
+	write_r30(~(1<<CLOCK)&read_r30());// set the clock pin low
+	delay(period_us);
+	write_r30(read_r30()|(1<<CLOCK)); //High
+
+}
+
+/*READ INPUTS */
+static uint8_t read_Inputs()
+{
+	uint8_t incoming=0b00000000;
+	write_r30(~(1<<S0)&read_r30());//S0 set to LOW    //SHIFT LEFT MODE
+	write_r30(read_r30()|(1<<S1)); // S1 set to HIGH
+
+
+	for(int i=0;i<8;i++){
+		write_r30(read_r30()|(1<<CLOCK));// Set clock High
+		delay(period_us);
+		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
+		incoming= incoming | (((read_r31()& Q0)>>Q0)<<i) ;
+	}
+	return incoming;
+}
+
 int main(void)
 {
 	config_SIPOMode();
