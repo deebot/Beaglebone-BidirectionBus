@@ -47,10 +47,7 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	ret=rpmsg_send(rpdev->ept, (void *)"345", 4);
 	if (ret)
-			dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
-
-		//return ret ? ret : count;
-
+		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
 }
 
 static int mygpio_direction_output(struct gpio_chip *gc,
@@ -75,16 +72,12 @@ static const struct of_device_id fake_gpiochip_ids[] = {
 static int gpio_rpmsg_probe (struct rpmsg_device *rpdev)
 {
 	int ret;
-	//struct rpmsg_device *rpdev;
 	struct rpmsg_pru_dev *prudev;
 	prudev = devm_kzalloc(&rpdev->dev, sizeof(*prudev), GFP_KERNEL);
 	if (!prudev)
 		return -ENOMEM;
-
-	//mutex_lock(&rpmsg_pru_lock);
 	prudev->rpdev = rpdev;
-
-		ret = kfifo_alloc(&prudev->msg_fifo, MAX_FIFO_MSG * FIFO_MSG_SIZE,
+	ret = kfifo_alloc(&prudev->msg_fifo, MAX_FIFO_MSG * FIFO_MSG_SIZE,
 				  GFP_KERNEL);
 
 	init_waitqueue_head(&prudev->wait_list);
@@ -107,14 +100,11 @@ static int gpio_rpmsg_cb(struct rpmsg_device *rpdev, void *data, int len,
 {
 	u32 length;
 	struct rpmsg_pru_dev *prudev;
-
 	prudev = dev_get_drvdata(&rpdev->dev);
-
 	if (kfifo_avail(&prudev->msg_fifo) < len) {
 		dev_err(&rpdev->dev, "Not enough space on the FIFO\n");
 		return -ENOSPC;
 	}
-
 	if ((prudev->msg_idx_wr + 1) % MAX_FIFO_MSG ==
 		prudev->msg_idx_rd) {
 		dev_err(&rpdev->dev, "Message length table is full\n");
@@ -124,11 +114,8 @@ static int gpio_rpmsg_cb(struct rpmsg_device *rpdev, void *data, int len,
 	length = kfifo_in(&prudev->msg_fifo, data, len);
 	prudev->msg_len[prudev->msg_idx_wr] = length;
 	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
-
 	wake_up_interruptible(&prudev->wait_list);
 	printk(KERN_INFO "data:%x\n ",  *((u8*)data));
-	//printk(KERN_INFO "BidirectionalBus: PISO mode on %p \n",data);
-
 	return 0;
 }
 static void gpio_remove(struct rpmsg_device *rpdev)
@@ -144,8 +131,8 @@ static const struct rpmsg_device_id rpmsg_driver_pru_id_table[] = {
 	{ .name	= "rpmsg-pru-gpio" },
 	{ },
 };
-MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pru_id_table);
 
+MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pru_id_table);
 static struct rpmsg_driver rpmsg_pru_driver = {
 	.drv.name	= KBUILD_MODNAME,
 	.id_table	= rpmsg_driver_pru_id_table,
@@ -154,12 +141,6 @@ static struct rpmsg_driver rpmsg_pru_driver = {
 	.remove		= gpio_remove,
 };
 
-
-
-
 module_rpmsg_driver(rpmsg_pru_driver);
-
-
-
 MODULE_AUTHOR("deepankar<xxx@gmail.com>");
 MODULE_LICENSE("GPL");
