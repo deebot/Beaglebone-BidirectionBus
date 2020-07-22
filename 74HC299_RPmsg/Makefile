@@ -1,4 +1,5 @@
-# Copyright (c) 2015, Dimitar Dimitrov
+# Copyright (c) 2015, Dimitar Dimitrov. 
+# Copyright (c)  2020 , Deepankar Maithani. Modified to include stoping  starting and loading of firmware
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -27,6 +28,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 
 # Very simple makefile to cross-compile for PRU
+
 
 
 # Common flags
@@ -60,6 +62,14 @@ OUT := out
 # Final ELF image file names
 ELF0 := $(OUT)/pru0-299Bidirectional.elf
 ELF1 := $(OUT)/pru1-halt.elf
+TARGET      =$(OUT)/$(PROJ_NAME).elf
+PRU0        :=/sys/class/remoteproc/remoteproc1
+PRU1        :=/sys/class/remoteproc/remoteproc2
+STATESRUNNING   :=running
+STATESSTOPED   :=offline
+CURRENTSTATE0:=$(shell cat $(PRU0)/state)
+CURRENTSTATE1:=$(shell cat $(PRU1)/state)
+
 
 # ============================ DO NOT TOUCH BELOW ============================
 all: $(ELF0) $(ELF1)
@@ -91,6 +101,67 @@ $(ELF1): $(SRC1) $(HEADERS) | $(OUT)
 
 clean:
 	$(RM) -fr $(ELF0) $(ELF1) $(OUT)
+	
+install_PRU0:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE0),$(STATESRUNNING))
+	@echo 'Stopping current PRU0 application ($(PRU0))'
+	@echo stop | sudo tee $(PRU0)/state
+endif
+	@echo 'Installing firmware'
+	@sudo cp $(ELF0) /lib/firmware/am335x-pru0-fw
+	@echo 'Starting new PRU0 application'
+	@echo start | sudo tee $(PRU0)/state
+
+install_PRU1:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE1),$(STATESRUNNING))
+	@echo 'Stopping current PRU1 application ($(PRU1))'
+	@echo stop | sudo tee $(PRU1)/state
+endif
+	@echo 'Installing firmware'
+	@sudo cp $(ELF1) /lib/firmware/am335x-pru1-fw
+	@echo 'Starting new PRU1 application'
+	@echo start | sudo tee $(PRU1)/state
+
+stop_PRU0:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE0),$(STATESRUNNING))
+	@echo 'Stopping current PRU0 application ($(PRU0))'
+	@echo stop | sudo tee $(PRU0)/state
+	@echo 'Stopped PRU0'
+endif
+
+stop_PRU1:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE1),$(STATESRUNNING))
+	@echo 'Stopping current PRU0 application ($(PRU1))'
+	@echo stop | sudo tee $(PRU1)/state
+	@echo 'Stopped PRU1'
+endif
+
+start_PRU0:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE0),$(STATESSTOPED))
+	@echo 'Starting current PRU0 application ($(PRU0))'
+	@echo start | sudo tee $(PRU0)/state
+	@echo 'Started PRU0'
+else
+	@echo 'PRU0 Already in the running state. execute stop_PRU0 first '
+	
+endif
+
+start_PRU1:
+	@echo 'Installation Process Initiated'
+ifeq ($(CURRENTSTATE1),$(STATESSTOPED))
+	@echo 'Starting current PRU0 application ($(PRU1))'
+	@echo start | sudo tee $(PRU1)/state
+	@echo 'Started PRU1'
+else
+	@echo 'PRU1 Already in the running state.execute stop_PRU1 firstt'
+endif
+
+
 
 cscope:
 	cscope -bRk
