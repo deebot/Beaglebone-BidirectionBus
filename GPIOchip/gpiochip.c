@@ -2,7 +2,6 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/gpio.h>
-#include <linux/platform_device.h>      /* For platform devices */
 #include <linux/of.h>                   /* For DTd d*/
 #include <linux/rpmsg.h>
 #include <linux/fs.h>
@@ -18,7 +17,10 @@
 #define RPMSG_BUF_SIZE				(512)
 #define MAX_FIFO_MSG				(32)
 #define FIFO_MSG_SIZE				RPMSG_BUF_SIZE
+#define GPIO_NUM 8
 static DEFINE_MUTEX(rpmsg_pru_lock);
+static char rpmsg_pru_buf[RPMSG_BUF_SIZE];
+static struct gpio_chip chip;
 struct rpmsg_pru_dev {
 	struct rpmsg_device *rpdev;
 	struct device *dev;
@@ -29,38 +31,60 @@ struct rpmsg_pru_dev {
 	int msg_idx_rd;
 	int msg_idx_wr;
 	wait_queue_head_t wait_list;
+	uint32_t gpio_state;
 };
-
-#define GPIO_NUM 16
-static struct gpio_chip chip;
 
 static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
 {
-	printk("My Debugger isget_value\n");
+	printk("get_value function is triggered\n");
 	return 0;
 }
 
 static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 {
 	int ret;
-	printk("My Debugger is set_value\n");
+	pr_info("set_value function triggered");
+	pr_info("The bit number %d is set to value: %d",offset,val);
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
-	ret=rpmsg_send(rpdev->ept, (void *)"345", 4);
+	struct rpmsg_pru_dev *prudev;
+	prudev = dev_get_drvdata(&rpdev->dev);
+	if (val==0)
+	{
+		prudev->gpio_state &= ~(1<<offset);
+	}
+	else
+	{
+		prudev->gpio_state |= (1<<offset);
+	}
+	if(offset==8)
+	{
+		rpmsg_pru_buf[0]= prudev->gpio_state;
+			pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
+			ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
+			if (ret)
+				dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
+	}
+
+	/*rpmsg_pru_buf[0]= prudev->gpio_state;
+	pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
+	ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 1);
 	if (ret)
-		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
+		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);*/
+
 }
+
 
 static int mygpio_direction_output(struct gpio_chip *gc,
 				       unsigned offset, int val)
 {
-	printk("My Debugger is direction_outputk\n");
+	printk("Direction of GPIO set to: out\n");
 	return 0;
 }
 
 static int mygpio_direction_input(struct gpio_chip *gc,
 				       unsigned offset)
 {
-	printk("My Debugger is direction_input\n");
+	printk("Direction of GPIO set to: in \n");
     return 0;
 }
 
@@ -69,7 +93,7 @@ static const struct of_device_id fake_gpiochip_ids[] = {
     { /* sentinel */ }
 };
 
-static int gpio_rpmsg_probe (struct rpmsg_device *rpdev)
+static int mygpio_rpmsg_pru_probe (struct rpmsg_device *rpdev)
 {
 	int ret;
 	struct rpmsg_pru_dev *prudev;
@@ -79,7 +103,6 @@ static int gpio_rpmsg_probe (struct rpmsg_device *rpdev)
 	prudev->rpdev = rpdev;
 	ret = kfifo_alloc(&prudev->msg_fifo, MAX_FIFO_MSG * FIFO_MSG_SIZE,
 				  GFP_KERNEL);
-
 	init_waitqueue_head(&prudev->wait_list);
 	dev_set_drvdata(&rpdev->dev, prudev);
 	chip.label = rpdev->desc;
@@ -95,16 +118,19 @@ static int gpio_rpmsg_probe (struct rpmsg_device *rpdev)
 	return gpiochip_add(&chip);
 }
 
-static int gpio_rpmsg_cb(struct rpmsg_device *rpdev, void *data, int len,
+static int mygpio_rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
 			void *priv, u32 src)
 {
 	u32 length;
 	struct rpmsg_pru_dev *prudev;
+
 	prudev = dev_get_drvdata(&rpdev->dev);
+
 	if (kfifo_avail(&prudev->msg_fifo) < len) {
 		dev_err(&rpdev->dev, "Not enough space on the FIFO\n");
 		return -ENOSPC;
 	}
+
 	if ((prudev->msg_idx_wr + 1) % MAX_FIFO_MSG ==
 		prudev->msg_idx_rd) {
 		dev_err(&rpdev->dev, "Message length table is full\n");
@@ -114,11 +140,12 @@ static int gpio_rpmsg_cb(struct rpmsg_device *rpdev, void *data, int len,
 	length = kfifo_in(&prudev->msg_fifo, data, len);
 	prudev->msg_len[prudev->msg_idx_wr] = length;
 	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
+
 	wake_up_interruptible(&prudev->wait_list);
-	printk(KERN_INFO "data:%x\n ",  *((u8*)data));
+	pr_info ("data in callback:%x ",  *((u8*)data));
 	return 0;
 }
-static void gpio_remove(struct rpmsg_device *rpdev)
+static void mygpio_rpmsg_pru_remove(struct rpmsg_device *rpdev)
 {
 	struct rpmsg_pru_dev *prudev;
 	prudev = dev_get_drvdata(&rpdev->dev);
@@ -131,16 +158,16 @@ static const struct rpmsg_device_id rpmsg_driver_pru_id_table[] = {
 	{ .name	= "rpmsg-pru-gpio" },
 	{ },
 };
-
 MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_pru_id_table);
+
 static struct rpmsg_driver rpmsg_pru_driver = {
 	.drv.name	= KBUILD_MODNAME,
 	.id_table	= rpmsg_driver_pru_id_table,
-	.probe		= gpio_rpmsg_probe,
-	.callback	= gpio_rpmsg_cb,
-	.remove		= gpio_remove,
+	.probe		= mygpio_rpmsg_pru_probe,
+	.callback	= mygpio_rpmsg_pru_cb,
+	.remove		= mygpio_rpmsg_pru_remove,
 };
 
 module_rpmsg_driver(rpmsg_pru_driver);
-MODULE_AUTHOR("deepankar<xxx@gmail.com>");
+MODULE_AUTHOR("DeepankarMaithani <deepankar19910@gmail.com>");
 MODULE_LICENSE("GPL");
