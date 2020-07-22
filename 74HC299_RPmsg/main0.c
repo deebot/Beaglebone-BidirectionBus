@@ -49,7 +49,8 @@
 #define Q0     ((uint32_t)1<< 15)   //2.18 input pin
 #define HOST_INT			((uint32_t) 1 << 30)
 /* Variables to gather data*/
-volatile uint8_t dataInput= 0b10100001;  //
+volatile uint8_t decimalInput= 31;
+volatile uint8_t dataInput= 0x00;  //
 volatile uint8_t bitVal;
 
 
@@ -58,7 +59,7 @@ volatile uint8_t bitVal;
  */
 #define TO_ARM_HOST			16
 #define FROM_ARM_HOST			17
-#define CHAN_NAME					"rpmsg-pru"
+#define CHAN_NAME					"rpmsg-pru-gpio"
 #define CHAN_DESC					"Channel 30"
 #define CHAN_PORT					30
 
@@ -70,7 +71,7 @@ volatile uint8_t bitVal;
 
 char payload[RPMSG_BUF_SIZE];
 
-
+char  testVal[RPMSG_BUF_SIZE]="1";
 static void delay_us(unsigned int us)
 {
 	/* assume cpu frequency is 200MHz */
@@ -82,6 +83,13 @@ const unsigned int period_us = 250 * 1000;
 char DatabitRead(volatile uint8_t  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
+}
+
+uint8_t toBinary(uint8_t decimalNo)
+{
+	if(decimalNo <2)
+		return decimalNo;
+	return toBinary(decimalNo/2)*10 + decimalNo%2;
 }
 /* CONFIGURE FOR LOADING
  *  set OE1 HIGH
@@ -153,7 +161,7 @@ static void config_PISOMode()
 	write_r30(read_r30()|(1<<S0)); // set S0 to HIGH
 	write_r30(read_r30()|(1<<S1)); //set S1 TO HIGH
 	write_r30(~(1<<CLOCK)&read_r30());// set the clock pin low
-	delay(period_us);
+	delay_us(period_us);
 	write_r30(read_r30()|(1<<CLOCK)); //High
 
 }
@@ -168,14 +176,24 @@ static uint8_t read_Inputs()
 
 	for(int i=0;i<8;i++){
 		write_r30(read_r30()|(1<<CLOCK));// Set clock High
-		delay(period_us);
+		delay_us(period_us);
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 		incoming= incoming | (((read_r31()& Q0)>>Q0)<<i) ;
 	}
 	return incoming;
 }
 
-
+static void convertbinary(uint8_t no)
+{
+	int re=0,i=1;
+	while(no!=0)
+			{
+				re=no%2;
+				no=no/2;
+				dataInput=dataInput+(re*i);
+				i=i*10;
+			}
+}
 
 
 static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
@@ -189,17 +207,15 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 	while (pru_rpmsg_receive(transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
 		/* Echo the message back to the same address
 		 * from which we just received */
-
-
-
-
+		decimalInput=atoi(payload);
+		dataInput=toBinary(decimalInput);
 		config_SIPOMode();
-		//clear_Register();
+		clear_Register();
 		load_Value();
 		push_Out();
 
-		//pru_rpmsg_send(transport, dst, src,
-			   //    payload, strlen(payload) + 1);
+		pru_rpmsg_send(transport, dst, src,
+			       payload,  1);
 	}
 }
 
