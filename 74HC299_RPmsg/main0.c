@@ -48,9 +48,12 @@
 #define OE2 	6   //2.28
 #define Q0     ((uint32_t)1<< 15)   //2.18 input pin
 #define HOST_INT			((uint32_t) 1 << 30)
+#define PISO_MODE 1
+#define SIPO_MODE 0
+
 /* Variables to gather data*/
 volatile uint8_t decimalInput= 31;
-volatile uint8_t dataInput= 0x00;  //
+volatile uint8_t dataInput= 0b00001111;  //
 volatile uint8_t bitVal;
 
 
@@ -70,6 +73,7 @@ volatile uint8_t bitVal;
 #define VIRTIO_CONFIG_S_DRIVER_OK	4
 
 char payload[RPMSG_BUF_SIZE];
+char payloadcheck[RPMSG_BUF_SIZE]="Hello";
 
 char  testVal[RPMSG_BUF_SIZE]="1";
 static void delay_us(unsigned int us)
@@ -80,17 +84,15 @@ static void delay_us(unsigned int us)
 
 const unsigned int period_us = 250 * 1000;
 
-char DatabitRead(volatile uint8_t  *x, char n)
+/*char DatabitRead(volatile uint8_t  *x, char n)
+{
+   return (*x & (1 << n)) ? 1 : 0;
+}*/
+char DatabitRead(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
 }
 
-uint8_t toBinary(uint8_t decimalNo)
-{
-	if(decimalNo <2)
-		return decimalNo;
-	return toBinary(decimalNo/2)*10 + decimalNo%2;
-}
 /* CONFIGURE FOR LOADING
  *  set OE1 HIGH
  *  set OE2 HIGH
@@ -123,6 +125,17 @@ static void clear_Register()
  * Eventually this data will come from userspace through a GPIO chip driver
  * */
 static void load_Value()
+{
+	for(int i=0;i<8;i++){
+		write_r30(DatabitRead(&payload,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
+		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
+		delay_us (period_us); // Wait for some time
+		write_r30(read_r30()|(1<<CLOCK));// Set clock High
+		delay_us (period_us);
+	}
+
+}
+static void load_Value2()
 {
 	for(int i=0;i<8;i++){
 		write_r30(DatabitRead(&dataInput,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
@@ -183,9 +196,10 @@ static uint8_t read_Inputs()
 	return incoming;
 }
 
-static void convertbinary(uint8_t no)
+static uint8_t convertbinary(uint8_t no)
 {
-	int re=0,i=1;
+	uint8_t re=0;
+	int i=1;
 	while(no!=0)
 			{
 				re=no%2;
@@ -205,10 +219,7 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 
 	/* Receive all available messages, multiple messages can be sent per kick */
 	while (pru_rpmsg_receive(transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
-		/* Echo the message back to the same address
-		 * from which we just received */
-		decimalInput=atoi(payload);
-		dataInput=toBinary(decimalInput);
+
 		config_SIPOMode();
 		clear_Register();
 		load_Value();
