@@ -11,13 +11,20 @@ To build the PRU firmware:
 	cd 74HC299_RPmsg
 	make
 
-## Remoteproc host driver
 
-Build and install firmware:
 
-	sudo cp out/pru0-299Bidirectional.elf /lib/firmware/am335x-pru1-fw
-	sudo cp out/pru1-halt.elf /lib/firmware/am335x-pru0-fw
-	sync
+
+## Installing new code and Starting PRU
+	make install_PRU0
+	make install_PRU1
+## To Stop PRU 
+	make stop_PRU0
+	make stop_PRU1
+## To Start PRU
+	make start_PRU0
+	make start_PRU1
+	
+## Configure pins in PRU mode
 
 In order to see the blinking led when you press the button you'll need to configure the pin mux:
 
@@ -29,15 +36,7 @@ In order to see the blinking led when you press the button you'll need to config
 	sudo config-pin P1.31 pruout
 	sudo config-pin P2.18 pruin
 change the pin numbers as per your usage
-
-## Upload the code to PRU cores
 	
-	cd /sys/class/remoteproc/remotepoc1
-	echo start > state
-	
-	cd /sys/class/remoteproc/remoteproc2
-	echo start > state
-
 ## Build and Send Data from userspace:
 In order to build you need to have libgpio package installed
 
