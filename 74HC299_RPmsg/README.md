@@ -39,6 +39,26 @@ change the pin numbers as per your usage
 	echo start > state
 
 ## Build and Send Data from userspace:
-	cd userspace_code
-	gcc UserSpace_Data.c -o UserSpace_Data.out
-	./UserSpace_Data
+In order to build you need to have libgpio package installed
+
+	sudo apt-get install libgpiod-dev
+
+Description of userspace c files: 
+
+gpio_multibit.c - Used to grab one i/o line and send 1 bit data
+
+gpio_singlbit.c - Used to grab multiple i/o and send  8 bit data
+	
+	cd gpiochip_userspace
+	make
+
+execute using
+ 
+	./gpio_multibit.c
+or
+
+	./gpio_singlbit.c 
+
+to debug
+	
+	dmesg
