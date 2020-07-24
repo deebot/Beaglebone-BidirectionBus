@@ -48,13 +48,14 @@
 #define OE2 	6   //2.28
 #define Q0     ((uint32_t)1<< 15)   //2.18 input pin
 #define HOST_INT			((uint32_t) 1 << 30)
-#define PISO_MODE 1
-#define SIPO_MODE 0
+#define PISO_MODE 0
+#define SIPO_MODE 1
 
 /* Variables to gather data*/
 volatile uint8_t decimalInput= 31;
-volatile uint8_t dataInput= 0b00001111;  //
-volatile uint8_t bitVal;
+volatile uint8_t dataInput= 0b111100001;  //
+volatile int bitVal;
+volatile uint16_t temp=0;
 
 
 /* The PRU-ICSS system events used for RPMsg are defined in the Linux device tree
@@ -73,7 +74,7 @@ volatile uint8_t bitVal;
 #define VIRTIO_CONFIG_S_DRIVER_OK	4
 
 char payload[RPMSG_BUF_SIZE];
-char payloadcheck[RPMSG_BUF_SIZE]="Hello";
+char payloadcheck[RPMSG_BUF_SIZE];
 
 char  testVal[RPMSG_BUF_SIZE]="1";
 static void delay_us(unsigned int us)
@@ -84,10 +85,14 @@ static void delay_us(unsigned int us)
 
 const unsigned int period_us = 250 * 1000;
 
-/*char DatabitRead(volatile uint8_t  *x, char n)
+char DatabitReads(volatile uint8_t  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
-}*/
+}
+char DatabitReadss(volatile uint16_t  *x, char n)
+{
+   return (*x & (1 << n)) ? 1 : 0;
+}
 char DatabitRead(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
@@ -126,8 +131,10 @@ static void clear_Register()
  * */
 static void load_Value()
 {
-	for(int i=0;i<8;i++){
+	for(int i=1;i<9;i++){
 		write_r30(DatabitRead(&payload,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
+
+		//write_r30(DatabitRead(&payload,i) & 1 ?   ~(1<<MOSI)&read_r30():	(read_r30()|(1<<MOSI))); // Mount the Value
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 		delay_us (period_us); // Wait for some time
 		write_r30(read_r30()|(1<<CLOCK));// Set clock High
@@ -137,8 +144,9 @@ static void load_Value()
 }
 static void load_Value2()
 {
-	for(int i=0;i<8;i++){
-		write_r30(DatabitRead(&dataInput,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
+	for(int i=1;i<9;i++){
+		write_r30(DatabitReads(&dataInput,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
+		//write_r30(DatabitRead(&dataInput,i) & 1 ?   ~(1<<MOSI)&read_r30():	(read_r30()|(1<<MOSI)));
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 		delay_us (period_us); // Wait for some time
 		write_r30(read_r30()|(1<<CLOCK));// Set clock High
@@ -188,15 +196,15 @@ static uint8_t read_Inputs()
 
 
 	for(int i=0;i<8;i++){
-		write_r30(read_r30()|(1<<CLOCK));// Set clock High
-		delay_us(period_us);
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
-		incoming= incoming | (((read_r31()& Q0)>>Q0)<<i) ;
+		delay_us(period_us);
+		write_r30(read_r30()|(1<<CLOCK));// Set clock High
+		incoming= incoming | ((read_r31()& Q0)>>i) ;
 	}
 	return incoming;
 }
 
-static uint8_t convertbinary(uint8_t no)
+/*static uint8_t convertbinary(uint8_t no)
 {
 	uint8_t re=0;
 	int i=1;
@@ -207,7 +215,7 @@ static uint8_t convertbinary(uint8_t no)
 				dataInput=dataInput+(re*i);
 				i=i*10;
 			}
-}
+}*/
 
 
 static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
@@ -219,11 +227,35 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 
 	/* Receive all available messages, multiple messages can be sent per kick */
 	while (pru_rpmsg_receive(transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
-
+		//int  tempval=DatabitReads(&payload,0);
+		//char *c2;
+		//c2=&payload;
+		char flag=(DatabitRead(&payload,0) & 1);
+		//sscanf(payload, "%2d", &bitVal);
+		//int  tempval=DatabitReads(&dataInput,0);
+		//char *cursor;
+		//cursor=payload;
+		//temp=strtol(cursor,&cursor,10);
+		//char flag=(DatabitReadss(&temp,512) & 1);
+		if(flag==SIPO_MODE)
+		{
 		config_SIPOMode();
 		clear_Register();
 		load_Value();
 		push_Out();
+		}
+		else if(flag==PISO_MODE)
+		{
+			config_SIPOMode();
+			clear_Register();
+			//read_Inputs();
+			load_Value2();
+			push_Out();
+
+			//pru_rpmsg_send(transport, dst, src,
+						  //     payload,  1);
+
+		}
 
 		pru_rpmsg_send(transport, dst, src,
 			       payload,  1);
