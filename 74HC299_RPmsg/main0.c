@@ -53,9 +53,10 @@
 
 /* Variables to gather data*/
 volatile uint8_t decimalInput= 31;
-volatile uint8_t dataInput= 0b111100001;  //
-volatile int bitVal;
+volatile uint8_t dataInput= 0b11110111;  //
+volatile uint8_t readVal;
 volatile uint16_t temp=0;
+volatile uint8_t *ptr;
 
 
 /* The PRU-ICSS system events used for RPMsg are defined in the Linux device tree
@@ -97,6 +98,10 @@ char DatabitRead(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
 }
+uint16_t DatabitReadint(volatile char  *x, char n)
+{
+   return (*x & (1 << n)) ? 1 : 0;
+}
 
 /* CONFIGURE FOR LOADING
  *  set OE1 HIGH
@@ -127,33 +132,26 @@ static void clear_Register()
 }
 
 /* Load the value which will is stored in the variable. Requires config_SIPO to be run first.
- * Eventually this data will come from userspace through a GPIO chip driver
+ * Eventually this data will come from userspace through a GPIO chip driver payload =[110000011]
  * */
+
 static void load_Value()
 {
-	for(int i=1;i<9;i++){
-		write_r30(DatabitRead(&payload,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
-
-		//write_r30(DatabitRead(&payload,i) & 1 ?   ~(1<<MOSI)&read_r30():	(read_r30()|(1<<MOSI))); // Mount the Value
+	for(int i=1;i<8;i++){
+		write_r30(DatabitRead(&payload[0],i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 		delay_us (period_us); // Wait for some time
 		write_r30(read_r30()|(1<<CLOCK));// Set clock High
 		delay_us (period_us);
 	}
+	write_r30(DatabitRead(&payload[1],0) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30());
+	write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
+	delay_us (period_us); // Wait for some time
+	write_r30(read_r30()|(1<<CLOCK));// Set clock High
+	delay_us (period_us);
 
 }
-static void load_Value2()
-{
-	for(int i=1;i<9;i++){
-		write_r30(DatabitReads(&dataInput,i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
-		//write_r30(DatabitRead(&dataInput,i) & 1 ?   ~(1<<MOSI)&read_r30():	(read_r30()|(1<<MOSI)));
-		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
-		delay_us (period_us); // Wait for some time
-		write_r30(read_r30()|(1<<CLOCK));// Set clock High
-		delay_us (period_us);
-	}
 
-}
 
 /* CONFIGURE TO PUSHOUT Data to make the data available on the outputs
  * set OE1 LOW
@@ -227,16 +225,9 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 
 	/* Receive all available messages, multiple messages can be sent per kick */
 	while (pru_rpmsg_receive(transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
-		//int  tempval=DatabitReads(&payload,0);
-		//char *c2;
-		//c2=&payload;
-		char flag=(DatabitRead(&payload,0) & 1);
-		//sscanf(payload, "%2d", &bitVal);
-		//int  tempval=DatabitReads(&dataInput,0);
-		//char *cursor;
-		//cursor=payload;
-		//temp=strtol(cursor,&cursor,10);
-		//char flag=(DatabitReadss(&temp,512) & 1);
+
+		char flag=(DatabitRead(&payload[0],0) & 1);
+
 		if(flag==SIPO_MODE)
 		{
 		config_SIPOMode();
@@ -244,21 +235,18 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 		load_Value();
 		push_Out();
 		}
-		else if(flag==PISO_MODE)
-		{
-			config_SIPOMode();
-			clear_Register();
-			//read_Inputs();
-			load_Value2();
-			push_Out();
+		else if(flag==PISO_MODE){
 
-			//pru_rpmsg_send(transport, dst, src,
-						  //     payload,  1);
+			config_PISOMode();
+			clear_Register();
+			readVal=read_Inputs();
+			ptr=&readVal;
+
 
 		}
 
 		pru_rpmsg_send(transport, dst, src,
-			       payload,  1);
+			      &ptr,  1);
 	}
 }
 
