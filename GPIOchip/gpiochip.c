@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/gpio.h>
+#include <linux/platform_device.h>      /* For platform devices */
 #include <linux/of.h>                   /* For DTd d*/
 #include <linux/rpmsg.h>
 #include <linux/fs.h>
@@ -17,7 +18,7 @@
 #define RPMSG_BUF_SIZE				(512)
 #define MAX_FIFO_MSG				(32)
 #define FIFO_MSG_SIZE				RPMSG_BUF_SIZE
-#define GPIO_NUM 8
+#define GPIO_NUM 9
 static DEFINE_MUTEX(rpmsg_pru_lock);
 static char rpmsg_pru_buf[RPMSG_BUF_SIZE];
 static struct gpio_chip chip;
@@ -58,7 +59,10 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	}
 	if(offset==8)
 	{
-		rpmsg_pru_buf[0]= prudev->gpio_state;
+		//rpmsg_pru_buf[0]= prudev->gpio_state;
+		// DatabitRead(&prudev->gpio_state,8);
+		pr_info("A check for bit no 8: %d",DatabitRead(&prudev->gpio_state,8));
+		memcpy((void*)&rpmsg_pru_buf,(void*)&(prudev->gpio_state),sizeof(&(prudev->gpio_state)));
 			pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
 			ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
 			if (ret)
@@ -69,8 +73,8 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
 	ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 1);
 	if (ret)
-		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);*/
-
+		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
+*/
 }
 
 
