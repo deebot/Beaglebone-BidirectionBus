@@ -1,4 +1,4 @@
-obj-m := gpiochip.o 
+obj-m := gpio_rpmsgdrv.o 
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 
