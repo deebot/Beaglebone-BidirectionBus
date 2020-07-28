@@ -33,11 +33,25 @@ struct rpmsg_pru_dev {
 	int msg_idx_wr;
 	wait_queue_head_t wait_list;
 	uint32_t gpio_state;
+	uint32_t input_state ;
+
 };
+
+struct rpmsg_pru_dev *prudev;
 
 static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
 {
+	//int ret;
+	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
+	prudev = dev_get_drvdata(&rpdev->dev);
+	pr_info("this is the value received %u ",*( &(prudev->input_state)));
+	//struct chip *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	printk("get_value function is triggered\n");
+
+	//ret=prudev->input_state|=1;
+	//ret=prudev->input_state &=(1<<offset);
+		pr_info("The bit number %d gets to value:",offset);
+
 	return 0;
 }
 
@@ -47,7 +61,6 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	pr_info("set_value function triggered");
 	pr_info("The bit number %d is set to value: %d",offset,val);
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
-	struct rpmsg_pru_dev *prudev;
 	prudev = dev_get_drvdata(&rpdev->dev);
 	if (val==0)
 	{
@@ -61,7 +74,7 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	{
 		//rpmsg_pru_buf[0]= prudev->gpio_state;
 		// DatabitRead(&prudev->gpio_state,8);
-		pr_info("A check for bit no 8: %d",DatabitRead(&prudev->gpio_state,8));
+		//pr_info("A check for bit no 8: %d",DatabitRead(&prudev->gpio_state,8));
 		memcpy((void*)&rpmsg_pru_buf,(void*)&(prudev->gpio_state),sizeof(&(prudev->gpio_state)));
 			pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
 			ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
@@ -146,7 +159,8 @@ static int mygpio_rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
 	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
 
 	wake_up_interruptible(&prudev->wait_list);
-	pr_info ("data in callback:%x ",  *((u8*)data));
+	prudev->input_state= *(u8*)data;
+	pr_info ("data in callback:%x ",prudev->input_state );
 	return 0;
 }
 static void mygpio_rpmsg_pru_remove(struct rpmsg_device *rpdev)
