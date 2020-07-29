@@ -1,0 +1,1 @@
+cmd_/home/debian/BeagleProject/Beaglebone-BidirectionBus/SPI/spibus.ko := ld -r  -EL -T ./scripts/module-common.lds -T ./arch/arm/kernel/module.lds  --build-id  -o /home/debian/BeagleProject/Beaglebone-BidirectionBus/SPI/spibus.ko /home/debian/BeagleProject/Beaglebone-BidirectionBus/SPI/spibus.o /home/debian/BeagleProject/Beaglebone-BidirectionBus/SPI/spibus.mod.o ;  true
