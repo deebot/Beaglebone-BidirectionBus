@@ -13,6 +13,7 @@
 #include <linux/poll.h>
 #include <linux/rpmsg/virtio_rpmsg.h>
 #include <linux/stat.h>
+#include <linux/bitops.h>
 #define PRU_MAX_DEVICES				(16)
 /* Matches the definition in virtio_rpmsg_bus.c */
 #define RPMSG_BUF_SIZE				(512)
@@ -39,20 +40,19 @@ struct rpmsg_pru_dev {
 
 struct rpmsg_pru_dev *prudev;
 
+
 static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
 {
-	//int ret;
+	int ret;
+	struct rpmsg_pru_dev  *rpmsgd;
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
-	prudev = dev_get_drvdata(&rpdev->dev);
-	pr_info("this is the value received %u ",*( &(prudev->input_state)));
-	//struct chip *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
-	printk("get_value function is triggered\n");
-
-	//ret=prudev->input_state|=1;
-	//ret=prudev->input_state &=(1<<offset);
-		pr_info("The bit number %d gets to value:",offset);
-
-	return 0;
+	const unsigned mask = BIT(offset % 8);
+	prudev=dev_get_drvdata(&rpdev->dev);
+	//prudev->input_state=0x55;
+	uint32_t value=prudev->input_state& mask;
+	pr_info("Value of mask is: %d",mask);
+	pr_info("The data is as following: %d",value);
+	return value;
 }
 
 static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
@@ -62,19 +62,20 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 	pr_info("The bit number %d is set to value: %d",offset,val);
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	prudev = dev_get_drvdata(&rpdev->dev);
+
 	if (val==0)
 	{
 		prudev->gpio_state &= ~(1<<offset);
+		pr_info("A when value 0: %d",~(1<<offset));
 	}
 	else
 	{
 		prudev->gpio_state |= (1<<offset);
+		pr_info("A when value 1: %d",(1<<offset));
 	}
 	if(offset==8)
 	{
-		//rpmsg_pru_buf[0]= prudev->gpio_state;
-		// DatabitRead(&prudev->gpio_state,8);
-		//pr_info("A check for bit no 8: %d",DatabitRead(&prudev->gpio_state,8));
+
 		memcpy((void*)&rpmsg_pru_buf,(void*)&(prudev->gpio_state),sizeof(&(prudev->gpio_state)));
 			pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
 			ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
@@ -82,12 +83,6 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 				dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
 	}
 
-	/*rpmsg_pru_buf[0]= prudev->gpio_state;
-	pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
-	ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 1);
-	if (ret)
-		dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
-*/
 }
 
 
@@ -101,6 +96,7 @@ static int mygpio_direction_output(struct gpio_chip *gc,
 static int mygpio_direction_input(struct gpio_chip *gc,
 				       unsigned offset)
 {
+
 	printk("Direction of GPIO set to: in \n");
     return 0;
 }
