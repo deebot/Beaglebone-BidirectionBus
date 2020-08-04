@@ -197,7 +197,7 @@ static uint8_t read_Inputs()
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 		delay_us(period_us);
 		write_r30(read_r30()|(1<<CLOCK));// Set clock High
-		incoming= incoming | ((read_r31()& Q0)>>i) ;
+		incoming= incoming | ((read_r31()& Q0)>>15)<<i ;
 	}
 	return incoming;
 }
