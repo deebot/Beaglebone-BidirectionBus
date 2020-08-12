@@ -36,7 +36,9 @@ GSoC 2020 project under BeagleBoard.org
 
 * **uspace_examples** : It contains codes that runs in the userspace to fetch or send data. It uses libgpiod.
 
+## Usage and other Details.
 
+Refer to the  [Wiki](https://github.com/deebot/Beaglebone-BidirectionBus/wiki)  and ReadMe files inside the folders
 
 
 
