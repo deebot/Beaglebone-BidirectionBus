@@ -48,9 +48,7 @@ static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	const unsigned mask = BIT(offset % 8);
 	prudev=dev_get_drvdata(&rpdev->dev);
-	//prudev->input_state=0x55;
 	uint32_t value=prudev->input_state& mask;
-	//pr_info("Value of mask is: %d",mask);
 	pr_info("The data is as following: %d",value);
 	return value;
 }
@@ -154,37 +152,10 @@ static int mygpio_rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
 	prudev->msg_len[prudev->msg_idx_wr] = length;
 	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
 
-	wake_up_interruptible(&prudev->wait_list);
-//	prudev->input_state= *(char*)data;
-	//pr_info ("data in callback:%x ",prudev->input_state );
-	 // memcpy (prudev->input_state, (uint32_t *)data, sizeof((char*)data));
-	//uint8_t *ptr;
-	//sscanf((*char)myarray, "%d", &prudev->input_state);
 	prudev->input_state=0b00000000;
 	kstrtol( (char*) data,10,&prudev->input_state);
 	pr_info("Value is %ld" ,prudev->input_state);
-	/*prudev->input_state|=*(char*)(data)<<7;
-	prudev->input_state|=*(char*)(data+1)<<6;
-	prudev->input_state|=*(char*)(data+2)<<5;
-	prudev->input_state|=*(char*)(data+3)<<4;
-	prudev->input_state|=*(char*)(data+4)<<3;
-	prudev->input_state|=*(char*)(data+5)<<2;
-	prudev->input_state|=*(char*)(data+6)<<1;
-	prudev->input_state|=*(char*)(data+7)<<0;
-	pr_info("Size is %d",sizeof(prudev->input_state));
-  pr_info ("data in callback:%c ",prudev->input_state);*/
-
-/*	pr_info ("data in callback:%c ",*(char*)data);
-	pr_info ("data in callback:%c ",*(char*)(data+1));
-	pr_info ("data in callback:%c ",*(char*)(data+2));
-	pr_info ("data in callback:%c ",*(char*)(data+3));*/
-/*	 const char *buf = "123";
-	    long value;
-	    if(kstrtoint(buf, 10, &value) != 0)
-	         return -1;
-	    // printk("%d",value);
-	     pr_info ("value dummenk %ld",value);*/
-
+	wake_up_interruptible(&prudev->wait_list);
 	return 0;
 }
 static void mygpio_rpmsg_pru_remove(struct rpmsg_device *rpdev)
