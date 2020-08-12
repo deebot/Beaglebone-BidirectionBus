@@ -85,7 +85,7 @@ static void delay_us(unsigned int us)
 }
 
 const unsigned int period_us = 250 * 1000;
-
+/*
 char DatabitReads(volatile uint8_t  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
@@ -98,11 +98,12 @@ char DatabitReadss(volatile uint16_t  *x, char n)
 char DatabitRead(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
-}
+
+}/*
 uint16_t DatabitReadint(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
-}
+}*/
 
 /* CONFIGURE FOR LOADING
  *  set OE1 HIGH
