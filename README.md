@@ -24,7 +24,7 @@ GSoC 2020 project under BeagleBoard.org
     * **rpmsg_595**:Contains pru firmware to establish communication between ARM and PRU. The user can send data from userspace to the shift register outputs
     
 
-* **biidirec_299** : It contains code to establish unidirectional communication between ARM and PRU
+* **biidirec_299** : It contains code to establish Bidirectional communication between ARM and PRU
 
     * **hardwaretest_299**: It contains pru firmware that can be run to test if all the wirings are correctly made and IC is working fine
     * **pru_pinconfig**:It contains shell script and systemd service file to set modes on the enhanced PRU pins
