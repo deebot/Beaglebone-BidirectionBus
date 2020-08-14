@@ -25,7 +25,6 @@
   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. */
-
 #include <pru/io.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,24 +40,17 @@
 /*Pin configuration*/
 #define CLOCK	5   //2.34
 #define MOSI    2   //2.32
-//#define MISO    7   //1.29
 #define S0		1   //1.33
 #define S1  	4   //1.31
 #define OE1   	3   //2.30
 #define OE2 	6   //2.28
-#define Q0     ((uint32_t)1<< 15)   //1.29 input pin//2.18
+#define Q0     ((uint32_t)1<< 15) //2.18
 #define HOST_INT			((uint32_t) 1 << 30)
 #define PISO_MODE 0
 #define SIPO_MODE 1
 
 /* Variables to gather data*/
-volatile uint8_t decimalInput= 31;
-volatile uint8_t dataInput= 0b11110111;  //
 volatile uint32_t readVal;
-volatile uint16_t temp=0;
-volatile uint8_t *ptr;
-
-
 /* The PRU-ICSS system events used for RPMsg are defined in the Linux device tree
  * PRU0 uses system event 16 (To ARM) and 17 (From ARM)
  */
@@ -75,7 +67,6 @@ volatile uint8_t *ptr;
 #define VIRTIO_CONFIG_S_DRIVER_OK	4
 
 char payload[RPMSG_BUF_SIZE];
-char payloadcheck[RPMSG_BUF_SIZE];
 
 char  testVal[RPMSG_BUF_SIZE]="1";
 static void delay_us(unsigned int us)
@@ -85,31 +76,15 @@ static void delay_us(unsigned int us)
 }
 
 const unsigned int period_us = 250 * 1000;
-/*
-char DatabitReads(volatile uint8_t  *x, char n)
-{
-   return (*x & (1 << n)) ? 1 : 0;
-}
-/*
-char DatabitReadss(volatile uint16_t  *x, char n)
-{
-   return (*x & (1 << n)) ? 1 : 0;
-}*/
 char DatabitRead(volatile char  *x, char n)
 {
    return (*x & (1 << n)) ? 1 : 0;
+}
 
-}/*
-uint16_t DatabitReadint(volatile char  *x, char n)
-{
-   return (*x & (1 << n)) ? 1 : 0;
-}*/
 
 /* CONFIGURE FOR LOADING
- *  set OE1 HIGH
- *  set OE2 HIGH
- *  set S0 HIGH
- *  set S1 LOW
+ *  set OE1 HIGH and set OE2 HIGH to disable the out output
+ *  set S0 HIGH and set S1 LOW   to use i/o  as output ports
 */
 static void config_SIPOMode()
 {
@@ -133,12 +108,11 @@ static void clear_Register()
 	}
 }
 
-/* Load the value which will is stored in the variable. Requires config_SIPO to be run first.
- * Eventually this data will come from userspace through a GPIO chip driver payload =[110000011]
+/* Load one bit from the payload and then shift it inside the shift register.
+ * In order to load the data the shift register should be configured in SIPO mode.
  * */
 
-static void load_Value()
-{
+static void load_Value(){
 	for(int i=1;i<8;i++){
 		write_r30(DatabitRead(&payload[0],i) & 1 ? (read_r30()|(1<<MOSI)) : ~(1<<MOSI)&read_r30()); // Mount the Value
 		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
@@ -150,8 +124,7 @@ static void load_Value()
 	write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
 	delay_us (period_us); // Wait for some time
 	write_r30(read_r30()|(1<<CLOCK));// Set clock High
-	delay_us (period_us);
-
+	delay_us (period_us);//wait for some time
 }
 
 
@@ -161,8 +134,7 @@ static void load_Value()
  * set S0 LOW
  * set S1 LOW
 */
-static void push_Out()
-{
+static void push_Out(){
 	write_r30(~(1<<OE1)&read_r30());
 	write_r30(~(1<<OE2)&read_r30());
 	write_r30(~(1<<S0)&read_r30());
@@ -175,8 +147,7 @@ static void push_Out()
  * set S0 HIGH
  * set S1 HIGH
  */
-static void config_PISOMode()
-{
+static void config_PISOMode(){
 	write_r30(~(1<<OE1)&read_r30());  // set OE1 to low
 	write_r30(~(1<<OE2)&read_r30());// set OE2 to low
 	write_r30(read_r30()|(1<<S0)); // set S0 to HIGH
@@ -184,46 +155,26 @@ static void config_PISOMode()
 	write_r30(~(1<<CLOCK)&read_r30());// set the clock pin low
 	delay_us(period_us);
 	write_r30(read_r30()|(1<<CLOCK)); //High
-
+	delay_us(period_us);
 }
 
 /*READ INPUTS */
-static uint32_t read_Inputs()
-{
+static uint32_t read_Inputs(){
 
-	uint32_t incoming2=0x00000000;
-	uint32_t value=0x0E20;
+	uint32_t incoming=0x00000000;
 	write_r30(~(1<<S0)&read_r30());//S0 set to LOW    //SHIFT LEFT MODE
 	write_r30(read_r30()|(1<<S1)); // S1 set to HIGH
 
 	for(int i=0;i<8;i++){
-		write_r30(read_r30()|(1<<CLOCK));// Set clock High
+		write_r30(~(1<<CLOCK)&read_r30());// set clock low
 		uint32_t output = (read_r31() &Q0)>>(uint32_t)15;
-		incoming2=incoming2|(output<<i);
-
-		//incoming2=  incoming2| ((read_r31()& Q0)>>(uint32_t)15)<<i ;                        	//11111111  & 10000000  10000000>>8   00000100
-		//incoming2
+		incoming|=(output<<i);
 		delay_us(period_us);
-		write_r30(~(1<<CLOCK)&read_r30());//set the clock Low
+		write_r30(read_r30()|(1<<CLOCK));//set clock high
+		delay_us(period_us);
 	}
-
-	return incoming2 ;//incoming;
+	return incoming ;//incoming;
 }
-
-/*static uint8_t convertbinary(uint8_t no)
-{
-	uint8_t re=0;
-	int i=1;
-	while(no!=0)
-			{
-				re=no%2;
-				no=no/2;
-				dataInput=dataInput+(re*i);
-				i=i*10;
-			}
-}*/
-
-
 static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 {
 	uint16_t src, dst, len;
@@ -236,35 +187,20 @@ static void handle_mailbox_interrupt(struct pru_rpmsg_transport *transport)
 
 		char flag=(DatabitRead(&payload[0],0) & 1);
 
-	/*if(flag==SIPO_MODE)
-		{
+	if(flag==SIPO_MODE){
 		config_SIPOMode();
 		clear_Register();
 		load_Value();
 		push_Out();
-	}*/
-	//	else if(flag==PISO_MODE){
-
+	}
+	else if(flag==PISO_MODE){
 			config_PISOMode();
-		//	clear_Register();
 			readVal=read_Inputs();
-			//char *c;
-			//c=&payloadcheck;
-			//volatile uint8_t testval =0b10101010;
-			//for(int i=0;i<8;i++)
-			//{
-			//c[i]= DatabitReads(&testval, i);
-		//	}
-		//	ptr=&readVal;
-		//	sprintf(payloadcheck,"%d",readVal);
-			//char *c;
-			//c=payloadcheck;
-			//c[0]='m';
-			//c[1]='1';
-	//	}
-			itoa(readVal,payloadcheck,2);
-		pru_rpmsg_send(transport, dst, src,
-			      payloadcheck,  strlen(payloadcheck));
+			itoa(readVal,payload,2);
+			pru_rpmsg_send(transport, dst, src,
+						      payload,  strlen(payload));
+		}
+
 	}
 }
 
