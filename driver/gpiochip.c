@@ -39,16 +39,12 @@ struct rpmsg_pru_dev {
 };
 
 struct rpmsg_pru_dev *prudev;
-
-
-static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
-{
-	int ret;
-	struct rpmsg_pru_dev  *rpmsgd;
+static int mygpio_get_value(struct gpio_chip *gc, unsigned offset){
+	uint32_t value;
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	const unsigned mask = BIT(offset % 8);
 	prudev=dev_get_drvdata(&rpdev->dev);
-	uint32_t value=prudev->input_state& mask;
+	value=prudev->input_state& mask;
 	pr_info("The data is as following: %d",value);
 	return value;
 }
@@ -56,29 +52,25 @@ static int mygpio_get_value(struct gpio_chip *gc, unsigned offset)
 static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 {
 	int ret;
+	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
 	pr_info("set_value function triggered");
 	pr_info("The bit number %d is set to value: %d",offset,val);
-	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
+
 	prudev = dev_get_drvdata(&rpdev->dev);
-
-	if (val==0)
-	{
+	if (val==0){
 		prudev->gpio_state &= ~(1<<offset);
-		pr_info("A when value 0: %d",~(1<<offset));
+		//pr_info("A when value 0: %d",~(1<<offset));
 	}
-	else
-	{
+	else{
 		prudev->gpio_state |= (1<<offset);
-		pr_info("A when value 1: %d",(1<<offset));
+		//pr_info("A when value 1: %d",(1<<offset));
 	}
-	if(offset==8)
-	{
-
+	if(offset==8){
 		memcpy((void*)&rpmsg_pru_buf,(void*)&(prudev->gpio_state),sizeof(&(prudev->gpio_state)));
-			pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
-			ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
-			if (ret)
-				dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
+		pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
+		ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
+		if (ret)
+			dev_err(gc->parent, "rpmsg_send failed: %d\n", ret);
 	}
 
 }
@@ -131,7 +123,7 @@ static int mygpio_rpmsg_pru_probe (struct rpmsg_device *rpdev)
 
 static int mygpio_rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
 			void *priv, u32 src)
-{
+{  int ret;
 	u32 length;
 	struct rpmsg_pru_dev *prudev;
 
@@ -152,10 +144,12 @@ static int mygpio_rpmsg_pru_cb(struct rpmsg_device *rpdev, void *data, int len,
 	prudev->msg_len[prudev->msg_idx_wr] = length;
 	prudev->msg_idx_wr = (prudev->msg_idx_wr + 1) % MAX_FIFO_MSG;
 
-	prudev->input_state=0b00000000;
-	kstrtol( (char*) data,10,&prudev->input_state);
-	pr_info("Value is %ld" ,prudev->input_state);
 	wake_up_interruptible(&prudev->wait_list);
+	//prudev->input_state=0b00000000;
+	ret =kstrtol( (char*) data,10,&prudev->input_state);
+	pr_info("The shift register port state is: %ld" ,prudev->input_state);
+
+
 	return 0;
 }
 static void mygpio_rpmsg_pru_remove(struct rpmsg_device *rpdev)
