@@ -18,20 +18,6 @@ Also make sure that gpiochip module is loaded before starting the PRU.
 	cd /sys/class/remoteproc/remoteproc1
 	sudo start > state
 
-## Accessing the Interface
-Once the module is loaded you should see gpiochip496 in the /sys/class/gpio.Then proceed further
-       
-	cd /sys/class/gpio
-	496 > export
-	cd gpio496
-	echo out > direction
-	echo 1 > value
 
-## Removing the Module
-You should follow the following sequence to unload the module.
-	
-	echo stop > remoteproc
-
-get out of the  /sys/gpio/gpio496 if you are inside it.
-	
+## Removing the Module	
 	sudo rmmod gpiochip.ko	
