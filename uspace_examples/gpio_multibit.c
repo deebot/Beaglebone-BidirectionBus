@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	struct gpiod_line *line;
 	struct gpiod_line_bulk *bulklines;
 //	int values[]={1,1,1,1,0,0,0,0};
-	int values[]={1,0,0,0,0,0,0,0,0};
+	int values[]={0,0,0,0,1,0,0,0,0};
 	int i, ret;
 	chip = gpiod_chip_open_by_name(chipname);
 	if (!chip) {
