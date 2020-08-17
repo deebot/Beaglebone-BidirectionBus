@@ -5,7 +5,7 @@ This code can configure 74HC595 in SIPO mode.
 
 ### Wiring diagram 
 
-![Diagram](unidirec_595/image/WiringDiagram.png)
+![Diagram](image/WiringDiagram.png)
 
 ### Configure Overlays
 
@@ -13,7 +13,7 @@ This code can configure 74HC595 in SIPO mode.
 	
 As shown in the image uncomment the overlays to enable remoteproc and disable UiO.
 
-![Diagram]((unidirec_595/image/uenv.png)
+![Diagram](image/uenv.png)
 
 ### Configure Enhanced PRU pins
 
