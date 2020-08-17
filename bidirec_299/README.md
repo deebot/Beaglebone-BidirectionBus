@@ -5,7 +5,7 @@ This code can configure 74HC299 in SIPO or PISO mode and reads or writes from th
 
 ### Wiring diagram 
 
-![Diagram](image/WiringDiagram.png)
+![Diagram](bidirec_299/image/WiringDiagram.png)
 
 ### Configure Overlays
 
@@ -13,7 +13,7 @@ This code can configure 74HC299 in SIPO or PISO mode and reads or writes from th
 	
 As shown in the image uncomment the overlays to enable remoteproc and disable UiO.
 
-![Diagram](image/WiringDiagram.png)
+![Diagram]((bidirec_299/image/uenv.png)
 
 ### Configure Enhanced PRU pins
 
