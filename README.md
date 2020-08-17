@@ -48,6 +48,12 @@ Refer to the  [Wiki](https://github.com/deebot/Beaglebone-BidirectionBus/wiki)  
 - [Reading inputs from 74HC299 on pocketBeagle](https://www.youtube.com/watch?v=Nn79KsYPg94)
 
 
+## Some Related BlogPosts
+- [Overview of GPIO subsystem on Beaglebon](https://deebot.github.io/BeagleboneGPIO.html)
+- [Logging Boot Messages on a pocketbeagle](https://deebot.github.io/BootSerialLogging.html)
+- [Mapping PRU pins with R30 and R31](https://deebot.github.io/PRURegisterMapping.html)
+- [Working with Rpmsg on PRU0 and PRU1](https://deebot.github.io/rpmsgPRU.html)
+- [Shared Memory and OCMC](https://deebot.github.io/sharedMemory.html)
 
 
   
