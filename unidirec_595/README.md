@@ -1,11 +1,11 @@
-# 74HC299-BidirectionalBus
-This code can configure 74HC299 in SIPO or PISO mode and reads or writes from the internal register inside the chip.
+# 74HC595-ARM to PRU Unidirectional Communication
+This code can configure 74HC595 in SIPO mode.
 
 ## <u>Connect and Test Circuit</u>
 
 ### Wiring diagram 
 
-![Diagram](image/74HC299.png)
+![Diagram](unidirec_595/image/WiringDiagram.png)
 
 ### Configure Overlays
 
@@ -13,29 +13,29 @@ This code can configure 74HC299 in SIPO or PISO mode and reads or writes from th
 	
 As shown in the image uncomment the overlays to enable remoteproc and disable UiO.
 
-![Diagram](image/uenv.png)
+![Diagram]((unidirec_595/image/uenv.png)
 
 ### Configure Enhanced PRU pins
 
-	cd hardwaretest_299/pru_pinconfig
+	cd hardwaretest_595/pru_pinconfig
 	chmod +x PRUconfig.sh
 	./PRUconfig.sh
-In order to configure pins automatically on boot refer to README in pru_pinconfig folder
+In order to configure pins automatically on boot refer to README in  pru_pinconfig folder
 ### Build and Install the firmware to test the connections
 	
-	cd hardwaretest_299
+	cd hardwaretest_595
 	make
 	make install_PRU0
 
 ### Result	
 
-If alternate LEDs connected to I/O-0 to I/O7 glows. This means the connections are OK. and everything is configured.
+If alternate LEDs connected to Q0 to Q7 glows. This means the connections are OK. and everything is configured.
 
 
 
 ## <u>Rpmsg Based Communication between the PRU and ARM</u>
 
-To do a bidirectional communication we need gpiochip driver and userspace code.
+To 74HC595 can do a serial input parallel output mode So  the data sent from the userspace on the ARM side can be send to the PRU from where PRU Will push it out.
 
 ### Build and insert Driver
 	
@@ -48,12 +48,11 @@ To do a bidirectional communication we need gpiochip driver and userspace code.
 	cd uspace_examples
 	make
 	
-### Test Bidirectional Communication
+### Test Unidirectional Communication
 	./gpiochip_multibit
 If everything works fine you should see  the LEDs connected to the output glow in a specific pattern. To change the pattern change the values array.
 
-	./gpiochip_multibitinput
-If everything works fine you should see  that all the pins are read as High. Connect the buttons to the inputs of shift register . Now  execute the script next time you should see a 0 for the bit positions. On pressing a button and executing the code  you should see the corresponding bit being high. The connection for the button are as below.
+
 	
 ### Debugging Tips
 
