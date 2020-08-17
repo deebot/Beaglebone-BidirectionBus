@@ -40,6 +40,14 @@ GSoC 2020 project under BeagleBoard.org
 
 Refer to the  [Wiki](https://github.com/deebot/Beaglebone-BidirectionBus/wiki)  and ReadMe files inside the folders
 
+## Some Related Video Links
+
+- [GSOC Introductory Video](https://www.youtube.com/watch?v=cKxx8r4FRqY)
+- [74hc595 Interfacing with PocketBeagle](https://www.youtube.com/watch?v=R-aSw67c1D4)
+- [Sending data using GPIOchip driver](https://www.youtube.com/watch?v=gZFyMHmyDzk)
+- [Reading inputs from 74HC299 on pocketBeagle](https://www.youtube.com/watch?v=Nn79KsYPg94)
+
+
 
 
   
