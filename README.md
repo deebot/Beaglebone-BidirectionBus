@@ -1,5 +1,5 @@
 # Beaglebone-BidirectionBus
-A bidirectionalBus allows the Beaglebone  to  take inputs and control multiple outputs from the PRU. 
+Bidirectional communication  allows the Beaglebone  to  take inputs and control multiple outputs from the PRU. 
 
 
 Details
@@ -12,6 +12,24 @@ GSoC 2020 project under BeagleBoard.org
     Mentors: Abhishek Kumar,Jason kridner, Saketh, RMA, ds2
     Organisation: BeagleBoard.org
 
+## Requirements
+ - pru-gcc : Required to compile the PRU firmware. Install using following commands
+ 
+	sudo apt-get update
+	sudo apt-get install gcc-pru
+	
+More info can be found here [gnupru](https://github.com/dinuxbg/gnupru)
+ - libgpiod: Required to compile the userspace code. Current version used is <em>1.4.1-2rcnee3~buster+20190906</em>
+ 	
+	sudo apt-get install -y libgpiod-dev
+ 
+ - Linux version used for development is (not a strict requirement):   <em> Linux beaglebone 4.19.94-ti-r42 #1buster SMP PREEMPT Tue Mar 31 19:38:29 UTC 2020 armv7l GNU/Linux </em>
+ 
+ 
+ - Linux Headers: Required to build the kernel Module
+
+	apt-cache search linux-headers-$(uname -r)
+	sudo apt install linux-headers-$(uname -r)
 
 ## Folder Description
 
