@@ -1,11 +1,12 @@
 ## Automatically Configuring enhanced PRU pins on Boot
 Follow the steps given below to achieve automatic configuration
-
 - Make the script executatble and copy to suitable location
-
 	chmod +x PRUconfig.h
+	
 	chmod +x PRUdefault.h
+	
 	sudo cp PRUconfig.h /usr/bin
+	
 	sudo cp PRUdefault.h /usr/bin
 
 - Copy the unit file to suitable location
