@@ -2,14 +2,13 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/gpio.h>
-#include <linux/platform_device.h>      /* For platform devices */
-#include <linux/of.h>                   /* For DTd d*/
+#include <linux/platform_device.h>
+#include <linux/of.h>
 #include <linux/rpmsg.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/kfifo.h>
 #include <linux/uaccess.h>
-#include <linux/mutex.h>
 #include <linux/poll.h>
 #include <linux/rpmsg/virtio_rpmsg.h>
 #include <linux/stat.h>
@@ -42,10 +41,10 @@ struct rpmsg_pru_dev *prudev;
 static int mygpio_get_value(struct gpio_chip *gc, unsigned offset){
 	uint32_t value;
 	struct rpmsg_device *rpdev= container_of(gc->parent, struct rpmsg_device, dev);
-	const unsigned mask = BIT(offset % 8);
+	unsigned int mask = BIT(offset % 8);
 	prudev=dev_get_drvdata(&rpdev->dev);
-	value=prudev->input_state& mask;
-	pr_info("The data is as following: %d",value);
+	value=(prudev->input_state& mask)>>offset;
+	pr_info("The value is %d and mask is %d, offset is %d,Inputstate is %ld",value,mask,offset,prudev->input_state);
 	return value;
 }
 
@@ -65,7 +64,7 @@ static void mygpio_set_value(struct gpio_chip *gc, unsigned offset, int val)
 		prudev->gpio_state |= (1<<offset);
 		//pr_info("A when value 1: %d",(1<<offset));
 	}
-	if(offset==8){
+	if(offset==GPIO_NUM-1){
 		memcpy((void*)&rpmsg_pru_buf,(void*)&(prudev->gpio_state),sizeof(&(prudev->gpio_state)));
 		pr_info("A check for checking gpio_state: %d",prudev->gpio_state);
 		ret=rpmsg_send(rpdev->ept, (void *)rpmsg_pru_buf, 2);
@@ -177,4 +176,7 @@ static struct rpmsg_driver rpmsg_pru_driver = {
 
 module_rpmsg_driver(rpmsg_pru_driver);
 MODULE_AUTHOR("DeepankarMaithani <deepankar19910@gmail.com>");
-MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("A Button/LED test driver for the Beagle");
+MODULE_VERSION("0.1");
+MODULE_LICENSE("GPL");;
