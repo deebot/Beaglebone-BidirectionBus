@@ -49,11 +49,18 @@ To do a bidirectional communication we need gpiochip driver and userspace code.
 	make
 	
 ### Test Bidirectional Communication
-	./gpiochip_multibit
-If everything works fine you should see  the LEDs connected to the output glow in a specific pattern. To change the pattern change the values array.
 
-	./gpiochip_multibitinput
-If everything works fine you should see  that all the pins are read as High. Connect the buttons to the inputs of shift register . Now  execute the script next time you should see a 0 for the bit positions. On pressing a button and executing the code  you should see the corresponding bit being high. The connection for the button are as below.
+Before proceeding further. Make sure you have inserted the gpiochip driver and have connected the 74hc299 correctly to the PRU as shown in the diagram. Run the code as following:
+	
+	./write_multibits 
+
+**Result:** You should see the alternate LEDs connected to shift registers glowing. The shift register is in SIPO mode.Fiddle around with the code to change the pattern
+
+Next in order to  test input connect a button to I/O-0 of shift register.On my hardware test my button is connected such that when it is not pressed the pin is pulled low. when button is pressed it pulls the pin HIGH.
+	
+	./read_onelineauto
+
+**Result:** You should see in dmesg and on your terminal that the bit no 1 is 0 and all other bits are 1.The shift register is in PISO mode.
 	
 ### Debugging Tips
 
@@ -66,6 +73,11 @@ If everything works fine you should see  that all the pins are read as High. Con
 - If the LEDs are not glowing at all
 
   Please check if the ground of beagleboard, shift registers are connected together.
+  
+  Also use a multimeter in continutiy mode to test if all the wires are connected properly. Check the voltages on shift register VCC. If still any issue. Please raise a issue.
+  
+ 
+  
 
  
  
