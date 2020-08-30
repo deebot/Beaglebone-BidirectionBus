@@ -1,4 +1,4 @@
-# 74HC299-BidirectionalBus
+# 74HC299-Bidirectional Communication
 This code can configure 74HC299 in SIPO or PISO mode and reads or writes from the internal register inside the chip.
 
 ## <u>Connect and Test Circuit</u>
