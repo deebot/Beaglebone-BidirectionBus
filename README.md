@@ -11,6 +11,7 @@ GSoC 2020 project under BeagleBoard.org
    
     Mentors: Abhishek Kumar,Jason kridner, Saketh, RMA, ds2
     Organisation: BeagleBoard.org
+Know More about me: [My Website ](https://deebot.github.io/):
 
 ## Requirements
  - pru-gcc : Required to compile the PRU firmware. Install using following commands
